@@ -1,0 +1,6 @@
+{
+  "name": "InstaPlus",
+  "description": "Standalone social platform with Time Capsule ephemeral posts, interactive feed polls, AI Caption Studio & translation, Mindful Focus Guard, Ghost Mode privacy shield, theme/font/icon customization, Vault downloader, and Biometric Chat Lock.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

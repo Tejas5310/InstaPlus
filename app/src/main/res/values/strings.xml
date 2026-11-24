@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">InstaPlus</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_reels">Reels</string>
+    <string name="nav_messages">Messages</string>
+    <string name="nav_profile">Profile</string>
+    <string name="nav_vault">Vault</string>
+    <string name="nav_mod_hub">Mod Hub</string>
+    <string name="ghost_mode_active">Ghost</string>
+    <string name="ad_free_active">Ad-Free</string>
+    <string name="action_download">Download</string>
+    <string name="action_translate">Translate</string>
+    <string name="action_switch_account">Switch Account</string>
+    <string name="vault_empty_title">Your Media Vault is Empty</string>
+    <string name="vault_empty_subtitle">Tap the Download pill while browsing Reels, Stories, photos, videos, or profiles to save in high resolution.</string>
+    <string name="lock_enter_pin">Enter PIN to Unlock Chat</string>
+    <string name="lock_create_pin">Create 4-Digit Chat Lock PIN</string>
+    <string name="lock_wrong_pin">Incorrect PIN. Try again.</string>
+    <string name="translate_sheet_title">InstaPlus AI Translator</string>
+</resources>

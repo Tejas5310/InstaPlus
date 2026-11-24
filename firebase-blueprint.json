@@ -1,0 +1,185 @@
+{
+  "entities": {
+    "UserCloudProfile": {
+      "title": "UserCloudProfile",
+      "description": "Authenticated user profile and cloud-synced InstaPlus privacy, appearance, and lock configuration (PIN secrets and Instagram session cookies remain strictly device-local and hardware-encrypted).",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the profile owner."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User display name from Google Sign-In."
+        },
+        "email": {
+          "type": "string",
+          "description": "Optional verified Google account email address (PII restricted to owner)."
+        },
+        "highResPriority": { "type": "boolean" },
+        "autoDetectMedia": { "type": "boolean" },
+        "showFloatingActionDock": { "type": "boolean" },
+        "hideOnlineStatus": { "type": "boolean" },
+        "anonymousStoryViewing": { "type": "boolean" },
+        "disableReadReceipts": { "type": "boolean" },
+        "hideTypingIndicator": { "type": "boolean" },
+        "blockFeedAds": { "type": "boolean" },
+        "blockStoryAds": { "type": "boolean" },
+        "blockReelsAds": { "type": "boolean" },
+        "hideSuggestedPosts": { "type": "boolean" },
+        "themePreset": { "type": "string" },
+        "fontPreset": { "type": "string" },
+        "chatBackgroundPreset": { "type": "string" },
+        "hideReelsTab": { "type": "boolean" },
+        "launcherIconVariant": { "type": "string" },
+        "isDmTabLocked": { "type": "boolean" },
+        "isAppLockEnabled": { "type": "boolean" },
+        "isBiometricEnabled": { "type": "boolean" },
+        "targetLanguage": { "type": "string" },
+        "autoOfferTranslate": { "type": "boolean" },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp updated via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "displayName",
+        "highResPriority",
+        "autoDetectMedia",
+        "showFloatingActionDock",
+        "hideOnlineStatus",
+        "anonymousStoryViewing",
+        "disableReadReceipts",
+        "hideTypingIndicator",
+        "blockFeedAds",
+        "blockStoryAds",
+        "blockReelsAds",
+        "hideSuggestedPosts",
+        "themePreset",
+        "fontPreset",
+        "chatBackgroundPreset",
+        "hideReelsTab",
+        "launcherIconVariant",
+        "isDmTabLocked",
+        "isAppLockEnabled",
+        "isBiometricEnabled",
+        "targetLanguage",
+        "autoOfferTranslate",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CloudVaultItem": {
+      "title": "CloudVaultItem",
+      "description": "Cloud-synced index record for downloaded Reels, Stories, feed photos, videos, and profile pictures.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the owner."
+        },
+        "mediaType": {
+          "type": "string",
+          "enum": ["PHOTO", "VIDEO", "REEL", "STORY", "AVATAR"]
+        },
+        "authorHandle": { "type": "string" },
+        "captionSnippet": { "type": "string" },
+        "sourceUrl": { "type": "string" },
+        "fileName": { "type": "string" },
+        "mimeType": { "type": "string" },
+        "fileSizeBytes": { "type": "integer" },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp updated via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "mediaType",
+        "authorHandle",
+        "captionSnippet",
+        "sourceUrl",
+        "fileName",
+        "mimeType",
+        "fileSizeBytes",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CloudLockedChat": {
+      "title": "CloudLockedChat",
+      "description": "Protected Direct Message thread lock rule synced across user devices.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "threadKey": { "type": "string" },
+        "displayName": { "type": "string" },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp updated via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": ["userId", "threadKey", "displayName", "createdAt", "updatedAt"]
+    },
+    "CloudAccountProfile": {
+      "title": "CloudAccountProfile",
+      "description": "Multi-account handle and label metadata (session cookie jars remain encrypted locally via Android Keystore AES-256-GCM).",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "username": { "type": "string" },
+        "displayName": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp updated via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": ["userId", "username", "displayName", "isActive", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserCloudProfile" },
+      "description": "Authenticated user cloud profile and synced Mod Hub preferences."
+    },
+    "/users/{userId}/vaultItems/{itemId}": {
+      "schema": { "$ref": "#/entities/CloudVaultItem" },
+      "description": "Owner-isolated media vault index records."
+    },
+    "/users/{userId}/lockedChats/{chatId}": {
+      "schema": { "$ref": "#/entities/CloudLockedChat" },
+      "description": "Owner-isolated locked DM conversation rules."
+    },
+    "/users/{userId}/accountProfiles/{profileId}": {
+      "schema": { "$ref": "#/entities/CloudAccountProfile" },
+      "description": "Owner-isolated multi-account metadata directory."
+    }
+  }
+}

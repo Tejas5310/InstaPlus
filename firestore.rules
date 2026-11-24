@@ -1,0 +1,227 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Shared hardened primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidTimestamp(ts) {
+      return ts is timestamp && ts <= request.time;
+    }
+
+    function isValidUserCloudProfile(data) {
+      return data.userId is string &&
+             data.userId == request.auth.uid &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80 &&
+             (!('email' in data) || (data.email is string && data.email.size() <= 120)) &&
+             data.highResPriority is bool &&
+             data.autoDetectMedia is bool &&
+             data.showFloatingActionDock is bool &&
+             data.hideOnlineStatus is bool &&
+             data.anonymousStoryViewing is bool &&
+             data.disableReadReceipts is bool &&
+             data.hideTypingIndicator is bool &&
+             data.blockFeedAds is bool &&
+             data.blockStoryAds is bool &&
+             data.blockReelsAds is bool &&
+             data.hideSuggestedPosts is bool &&
+             data.themePreset in ['INSTAGRAM_LIGHT', 'AMOLED_DARK', 'SUNSET_ROSE', 'MIDNIGHT_VIOLET', 'EDITORIAL_SLATE'] &&
+             data.fontPreset in ['INTER', 'PLUS_JAKARTA_SANS', 'PLAYFAIR_DISPLAY', 'PACIFICO', 'ROBOTO_MONO'] &&
+             data.chatBackgroundPreset in ['DEFAULT', 'PRISM_SILK', 'AMOLED_PITCH', 'SOFT_ROSE', 'CUSTOM_PHOTO'] &&
+             data.hideReelsTab is bool &&
+             data.launcherIconVariant in ['CLASSIC', 'OBSIDIAN', 'MINIMAL', 'SUNSET'] &&
+             data.isDmTabLocked is bool &&
+             data.isAppLockEnabled is bool &&
+             data.isBiometricEnabled is bool &&
+             data.targetLanguage is string && data.targetLanguage.size() >= 1 && data.targetLanguage.size() <= 40 &&
+             data.autoOfferTranslate is bool &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidCloudVaultItem(data) {
+      return data.userId is string &&
+             data.userId == request.auth.uid &&
+             data.mediaType in ['PHOTO', 'VIDEO', 'REEL', 'STORY', 'AVATAR'] &&
+             data.authorHandle is string && data.authorHandle.size() >= 1 && data.authorHandle.size() <= 64 &&
+             data.captionSnippet is string && data.captionSnippet.size() <= 500 &&
+             data.sourceUrl is string && data.sourceUrl.size() >= 1 && data.sourceUrl.size() <= 2048 &&
+             data.fileName is string && data.fileName.size() >= 1 && data.fileName.size() <= 180 &&
+             data.mimeType is string && data.mimeType.size() >= 1 && data.mimeType.size() <= 80 &&
+             data.fileSizeBytes is int && data.fileSizeBytes >= 0 &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidCloudLockedChat(data) {
+      return data.userId is string &&
+             data.userId == request.auth.uid &&
+             data.threadKey is string && data.threadKey.size() >= 1 && data.threadKey.size() <= 128 &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80 &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidCloudAccountProfile(data) {
+      return data.userId is string &&
+             data.userId == request.auth.uid &&
+             data.username is string && data.username.size() >= 1 && data.username.size() <= 64 &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80 &&
+             data.isActive is bool &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if isOwner(userId);
+
+      allow create: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       incoming().keys().hasAll([
+                         'userId', 'displayName',
+                         'highResPriority', 'autoDetectMedia', 'showFloatingActionDock',
+                         'hideOnlineStatus', 'anonymousStoryViewing', 'disableReadReceipts', 'hideTypingIndicator',
+                         'blockFeedAds', 'blockStoryAds', 'blockReelsAds', 'hideSuggestedPosts',
+                         'themePreset', 'fontPreset', 'chatBackgroundPreset', 'hideReelsTab', 'launcherIconVariant',
+                         'isDmTabLocked', 'isAppLockEnabled', 'isBiometricEnabled',
+                         'targetLanguage', 'autoOfferTranslate',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'displayName', 'email',
+                         'highResPriority', 'autoDetectMedia', 'showFloatingActionDock',
+                         'hideOnlineStatus', 'anonymousStoryViewing', 'disableReadReceipts', 'hideTypingIndicator',
+                         'blockFeedAds', 'blockStoryAds', 'blockReelsAds', 'hideSuggestedPosts',
+                         'themePreset', 'fontPreset', 'chatBackgroundPreset', 'hideReelsTab', 'launcherIconVariant',
+                         'isDmTabLocked', 'isAppLockEnabled', 'isBiometricEnabled',
+                         'targetLanguage', 'autoOfferTranslate',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidUserCloudProfile(incoming());
+
+      allow update: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       isValidUserCloudProfile(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'displayName', 'email',
+                         'highResPriority', 'autoDetectMedia', 'showFloatingActionDock',
+                         'hideOnlineStatus', 'anonymousStoryViewing', 'disableReadReceipts', 'hideTypingIndicator',
+                         'blockFeedAds', 'blockStoryAds', 'blockReelsAds', 'hideSuggestedPosts',
+                         'themePreset', 'fontPreset', 'chatBackgroundPreset', 'hideReelsTab', 'launcherIconVariant',
+                         'isDmTabLocked', 'isAppLockEnabled', 'isBiometricEnabled',
+                         'targetLanguage', 'autoOfferTranslate',
+                         'updatedAt'
+                       ]);
+
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      match /vaultItems/{itemId} {
+        allow get: if isOwner(userId) && isValidId(itemId);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(itemId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'mediaType', 'authorHandle', 'captionSnippet',
+                           'sourceUrl', 'fileName', 'mimeType', 'fileSizeBytes',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'mediaType', 'authorHandle', 'captionSnippet',
+                           'sourceUrl', 'fileName', 'mimeType', 'fileSizeBytes',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidCloudVaultItem(incoming());
+
+        allow update: if isOwner(userId) &&
+                         isValidId(itemId) &&
+                         isValidCloudVaultItem(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'captionSnippet', 'fileName', 'updatedAt'
+                         ]);
+
+        allow delete: if isOwner(userId) && isValidId(itemId);
+      }
+
+      match /lockedChats/{chatId} {
+        allow get: if isOwner(userId) && isValidId(chatId);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(chatId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'threadKey', 'displayName', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'threadKey', 'displayName', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidCloudLockedChat(incoming());
+
+        allow update: if isOwner(userId) &&
+                         isValidId(chatId) &&
+                         isValidCloudLockedChat(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'displayName', 'updatedAt'
+                         ]);
+
+        allow delete: if isOwner(userId) && isValidId(chatId);
+      }
+
+      match /accountProfiles/{profileId} {
+        allow get: if isOwner(userId) && isValidId(profileId);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(profileId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'username', 'displayName', 'isActive', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'username', 'displayName', 'isActive', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidCloudAccountProfile(incoming());
+
+        allow update: if isOwner(userId) &&
+                         isValidId(profileId) &&
+                         isValidCloudAccountProfile(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'displayName', 'isActive', 'updatedAt'
+                         ]);
+
+        allow delete: if isOwner(userId) && isValidId(profileId);
+      }
+    }
+  }
+}
